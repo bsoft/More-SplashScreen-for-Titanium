@@ -1,7 +1,7 @@
 /*
 More SplashScreen ©BSoft&Co 2012
 --------------------------------
-v0.9 beta
+v0.91 beta
 */
 
 var moreSplash = function(tabGroupObj) {
@@ -12,21 +12,21 @@ var moreSplash = function(tabGroupObj) {
      
     welcomeWindow.add(defaultImage);
     welcomeWindow.open({fullscreen:true});
-//    Ti.App.fireEvent('show_indicator',{message:'Loading User Interface...'});
+    Ti.App.fireEvent('show_indicator',{nameid:'screen',message:'Loading User Interface...'});
 
     // here you can add an activity indicator or everything you want
 
     // register a listenner to close the splashscreen 
     welcomeWindow.addEventListener('CloseMe', function(e) {
         // close the activity indicator if needed
-//        Ti.App.fireEvent('hide_indicator');
         welcomeWindow.close({opacity:0,duration:1000}, function() {
-            tabGroupObj.setActiveTab(0);
             welcomeWindow.remove(defaultImage);
             defaultImage = null;            
             welcomeWindow = null;
+            Ti.App.fireEvent('hide_indicator',{nameid:'screen'});
         });
-        tabGroupObj.animate({opacity:1,duration:1000});
+        tabGroupObj.animate({opacity:1,duration:500});
+        tabGroupObj.setActiveTab(0);
     });
     // set a low opacity to the tabgroup, nicer to make it appears after
     tabGroupObj.setOpacity(0.01); 
@@ -39,16 +39,17 @@ var moreSplash = function(tabGroupObj) {
 
     var tabNum = tabGroupObj.getTabs().length - 1;; // number of tabs (+1) to load
     tabGroupObj.setActiveTab(tabNum);
-    Titanium.App.addEventListener('tabCharged', function(e){
+    
+    fctTabCharged = function(e) {
         Ti.API.info("tabCharged event receive");
         tabNum--;
-//        setTimeout(function() { 
-            tabGroupObj.setActiveTab(tabNum);
-            if (tabNum === 0) { 
-                tabNum = null; 
-                Titanium.App.removeEventListener('tabCharged',function(){});
-                welcomeWindow.fireEvent('CloseMe');
-            }
-//        },250);
-    });
+        tabGroupObj.setActiveTab(tabNum);
+        if (tabNum === 0) { 
+            tabNum = null; 
+            Titanium.App.removeEventListener('tabCharged',fctTabCharged);
+            welcomeWindow.fireEvent('CloseMe');
+        }
+    }
+
+    Titanium.App.addEventListener('tabCharged', fctTabCharged );
 };
